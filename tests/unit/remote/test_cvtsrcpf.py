@@ -258,23 +258,6 @@ def test_cvtsrcpf_insert_line(mock_get_style, mock_ibm_job, temp_directory):
 
 
 @patch("makei.cvtsrcpf.IBMJob")
-def test_cvtsrcpf_insert_line_invalid_columns(mock_ibm_job, temp_directory):
-    """Test insert_line with invalid column range"""
-    mock_job_instance = Mock()
-    mock_ibm_job.return_value = mock_job_instance
-
-    cvt = CvtSrcPf("QRPGLESRC", "MYLIB", False, save_path=temp_directory)
-
-    test_file = temp_directory / "test.rpgle"
-    test_file.write_text("Line 1\n")
-
-    # end_column <= start_column should return False
-    result = cvt.insert_line(test_file, "Test", "*", "*", 0, 72, 7)
-
-    assert result is False
-
-
-@patch("makei.cvtsrcpf.IBMJob")
 def test_cvtsrcpf_insert_line_non_ascii_is_utf8(mock_ibm_job, temp_directory):
     """Test insert_line writes non-ASCII member text as UTF-8 regardless of locale"""
     mock_job_instance = Mock()
@@ -302,6 +285,23 @@ def test_cvtsrcpf_insert_line_non_ascii_is_utf8(mock_ibm_job, temp_directory):
     lines = test_file.read_bytes().decode("utf-8").splitlines()
     assert lines[0] == "      * %TEXT Utilità per SQL" + " " * 42 + "*"
     assert lines[1] == "     D Città"
+
+
+@patch("makei.cvtsrcpf.IBMJob")
+def test_cvtsrcpf_insert_line_invalid_columns(mock_ibm_job, temp_directory):
+    """Test insert_line with invalid column range"""
+    mock_job_instance = Mock()
+    mock_ibm_job.return_value = mock_job_instance
+
+    cvt = CvtSrcPf("QRPGLESRC", "MYLIB", False, save_path=temp_directory)
+
+    test_file = temp_directory / "test.rpgle"
+    test_file.write_text("Line 1\n")
+
+    # end_column <= start_column should return False
+    result = cvt.insert_line(test_file, "Test", "*", "*", 0, 72, 7)
+
+    assert result is False
 
 
 @patch("os.popen")
