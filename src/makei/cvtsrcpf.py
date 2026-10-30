@@ -1,6 +1,5 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf-8 -*-
-import os
 import subprocess
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -202,7 +201,7 @@ class CvtSrcPf:
 
 def _get_attr(filepath: str, defaultCcsid: str):
     result = subprocess.run(['/QOpenSys/usr/bin/attr', filepath],
-                           capture_output=True, text=True, errors='replace')
+                            capture_output=True, text=True, errors='replace')
     output = result.stdout.strip()
     attrs = {"CCSID": defaultCcsid}
     if not output.__contains__("="):
