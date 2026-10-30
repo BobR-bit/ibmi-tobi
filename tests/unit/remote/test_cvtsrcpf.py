@@ -274,6 +274,36 @@ def test_cvtsrcpf_insert_line_invalid_columns(mock_ibm_job, temp_directory):
     assert result is False
 
 
+@patch("makei.cvtsrcpf.IBMJob")
+def test_cvtsrcpf_insert_line_non_ascii_is_utf8(mock_ibm_job, temp_directory):
+    """Test insert_line writes non-ASCII member text as UTF-8 regardless of locale"""
+    mock_job_instance = Mock()
+    mock_ibm_job.return_value = mock_job_instance
+
+    cvt = CvtSrcPf("QRPGLESRC", "MYLIB", False, save_path=temp_directory)
+
+    # CPYTOSTMF creates the stream file as UTF-8 (CCSID 1208)
+    test_file = temp_directory / "test.rpgle"
+    test_file.write_bytes("     D Città\n".encode("utf-8"))
+
+    # Simulate a PASE locale whose default encoding is ISO-8859-1
+    real_open = open
+
+    def latin1_default_open(file, mode="r", *args, encoding=None, **kwargs):
+        if "b" not in mode and encoding is None:
+            encoding = "iso-8859-1"
+        return real_open(file, mode, *args, encoding=encoding, **kwargs)
+
+    with patch("builtins.open", latin1_default_open):
+        result = cvt.insert_line(test_file, " %TEXT Utilità per SQL", "*", "*", 0, 7, 72)
+
+    assert result is True
+
+    lines = test_file.read_bytes().decode("utf-8").splitlines()
+    assert lines[0] == "      * %TEXT Utilità per SQL" + " " * 42 + "*"
+    assert lines[1] == "     D Città"
+
+
 @patch("os.popen")
 def test_retrieve_ccsid(mock_popen):
     """Test retrieve_ccsid function"""

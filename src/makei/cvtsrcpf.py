@@ -48,7 +48,7 @@ class CvtSrcPf:
         try:
             if end_column <= start_column:
                 return False
-            with open(file_path, 'r+') as file:
+            with open(file_path, 'r+', encoding='utf-8') as file:
                 lines = file.readlines()
                 lines.insert(write_on_line, '\n')
 
